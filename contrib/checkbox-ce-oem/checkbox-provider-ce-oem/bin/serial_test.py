@@ -117,7 +117,9 @@ def generate_random_string(length):
     return "".join(random.choice(letters) for _ in range(length))
 
 
-def server_mode(ser: Serial) -> None:
+def server_mode(
+    node, type, group, baudrate, bytesize, parity, stopbits, timeout, datasize
+) -> None:
     """
     Running as a server, it will be sniffing for received string.
     And it will send the same string out.
@@ -125,6 +127,17 @@ def server_mode(ser: Serial) -> None:
     running on port /dev/ttyUSB0 as a server
     $ sudo ./serial_test.py /dev/ttyUSB0 --mode server --type USB
     """
+    ser = Serial(
+        node,
+        type,
+        group,
+        baudrate,
+        bytesize,
+        parity,
+        stopbits,
+        timeout,
+        datasize,
+    )
     logging.info("Listening on port {} ...".format(ser.node))
     while True:
         data = ser.recv()
@@ -135,7 +148,7 @@ def server_mode(ser: Serial) -> None:
             logging.info("Listening on port {} ...".format(ser.node))
 
 
-def client_mode(ser: Serial, data_size: int = 1024):
+def client_mode(node, type, group, baudrate, bytesize, parity, stopbits, timeout, datasize):
     """
     Running as a clinet and it will sending out a string and wait
     the string send back from server. After receive the string,
@@ -144,7 +157,18 @@ def client_mode(ser: Serial, data_size: int = 1024):
     running on port /dev/ttymxc1 as a client
     $ sudo ./serial_test.py /dev/ttymxc1 --mode client --type RS485
     """
-    random_string = generate_random_string(data_size)
+    ser = Serial(
+        node,
+        type,
+        group,
+        baudrate,
+        bytesize,
+        parity,
+        stopbits,
+        timeout,
+        datasize,
+    )
+    random_string = generate_random_string(datasize)
     ser.send(random_string.encode())
     for i in range(1, 6):
         logging.info("Attempting receive string... {} time".format(i))
@@ -161,13 +185,24 @@ def client_mode(ser: Serial, data_size: int = 1024):
     raise SystemExit(1)
 
 
-def console_mode(ser: Serial):
+def console_mode(node, type, group, baudrate, bytesize, parity, stopbits, timeout, datasize):
     """
     Test the serial port when it is in console mode
     This test requires DUT to loop back it self.
     For example: connect the serial console port to the USB port via
     serial to usb dongle
     """
+    ser = Serial(
+        node,
+        type,
+        group,
+        baudrate,
+        bytesize,
+        parity,
+        stopbits,
+        timeout,
+        datasize,
+    )
     try:
         # Send 'Enter Key'
         logging.info("Sending 'Enter Key'...")
@@ -263,24 +298,43 @@ def main():
     )
     args = parser.parse_args()
     init_logger()
-    ser = Serial(
-        args.node,
-        args.type,
-        args.group,
-        baudrate=args.baudrate,
-        bytesize=args.bytesize,
-        parity=args.parity,
-        stopbits=args.stopbits,
-        timeout=args.timeout,
-        data_size=args.datasize,
-    )
 
     if args.mode == "server":
-        server_mode(ser)
+        server_mode(
+            args.node,
+            args.type,
+            args.group,
+            args.baudrate,
+            args.bytesize,
+            args.parity,
+            args.stopbits,
+            args.timeout,
+            args.datasize,
+        )
     elif args.mode == "client":
-        client_mode(ser, data_size=args.datasize)
+        client_mode(
+            args.node,
+            args.type,
+            args.group,
+            args.baudrate,
+            args.bytesize,
+            args.parity,
+            args.stopbits,
+            args.timeout,
+            args.datasize,
+        )
     elif args.mode == "console":
-        console_mode(ser)
+        console_mode(
+            args.node,
+            args.type,
+            args.group,
+            args.baudrate,
+            args.bytesize,
+            args.parity,
+            args.stopbits,
+            args.timeout,
+            args.datasize,
+        )
     else:
         raise SystemExit(1)
 

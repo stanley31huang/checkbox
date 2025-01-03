@@ -96,6 +96,8 @@ parts:
       - python3-urwid
       - python3-xlsxwriter
       - python3-requests-oauthlib
+    python-packages:
+      - rpyc
   input-pcspkr:
     plugin: nil
     after: [checkbox-provider-ce-oem]
